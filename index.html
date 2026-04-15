@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyFilms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f0;
+    --muted: #888;
+    --accent: #e8c97a;
+    --accent2: #c4a45a;
+    --radius: 6px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  nav {
+    display: flex;
+    gap: 4px;
+  }
+
+  nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  nav button:hover { color: var(--text); background: var(--surface2); }
+  nav button.active { color: var(--bg); background: var(--accent); font-weight: 500; }
+
+  .count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  main {
+    padding: 36px 40px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .thumb {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover .thumb {
+    border-color: var(--accent2);
+    transform: translateY(-3px);
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--surface2);
+    background: linear-gradient(160deg, #1a1a1a 0%, #111 100%);
+    letter-spacing: 2px;
+  }
+
+  .play-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: var(--radius);
+  }
+
+  .card:hover .play-overlay { opacity: 1; }
+
+  .play-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .play-btn::after {
+    content: '';
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 14px;
+    border-color: transparent transparent transparent var(--accent);
+    margin-left: 3px;
+  }
+
+  .cat-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .cat-movie { background: rgba(232,201,122,0.15); color: var(--accent); border: 1px solid rgba(232,201,122,0.3); }
+  .cat-series { background: rgba(100,160,255,0.12); color: #7ab4ff; border: 1px solid rgba(100,160,255,0.25); }
+  .cat-anime { background: rgba(255,130,100,0.12); color: #ff9a7a; border: 1px solid rgba(255,130,100,0.25); }
+
+  .card-info { padding: 10px 2px 0; }
+  .card-title { font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-year { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 0;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 16px 20px; }
+    main { padding: 24px 20px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">MYFILMS</a>
+  <nav>
+    <button class="active" data-cat="all">全部</button>
+    <button data-cat="movie">电影</button>
+    <button data-cat="series">剧集</button>
+    <button data-cat="anime">动漫</button>
+  </nav>
+  <span class="count" id="count"></span>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<script src="movies.js"></script>
+<script>
+  const catLabels = { movie: '电影', series: '剧集', anime: '动漫' };
+  let currentCat = 'all';
+
+  function render(cat) {
+    const list = cat === 'all' ? MOVIES : MOVIES.filter(m => m.category === cat);
+    const grid = document.getElementById('grid');
+    const count = document.getElementById('count');
+    count.textContent = list.length + ' 部';
+
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="empty">暂无内容</div>';
+      return;
+    }
+
+    grid.innerHTML = list.map(m => {
+      const thumb = m.cover
+        ? `<img src="${m.cover}" alt="${m.title}" loading="lazy">`
+        : `<div class="thumb-placeholder">${m.title.charAt(0)}</div>`;
+      const badge = `<span class="cat-badge cat-${m.category}">${catLabels[m.category] || m.category}</span>`;
+      return `
+        <a class="card" href="player.html?id=${m.id}">
+          <div class="thumb">
+            ${thumb}
+            ${badge}
+            <div class="play-overlay"><div class="play-btn"></div></div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">${m.title}</div>
+            <div class="card-year">${m.year}</div>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  document.querySelectorAll('nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCat = btn.dataset.cat;
+      render(currentCat);
+    });
+  });
+
+  render('all');
+</script>
+</body>
+</html>
