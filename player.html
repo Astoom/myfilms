@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>播放中 — MyFilms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3/dist/plyr.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f0;
+    --muted: #888;
+    --accent: #e8c97a;
+    --radius: 6px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .back {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back:hover { color: var(--text); }
+  .back::before { content: '←'; }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  .player-wrap {
+    width: 100%;
+    background: #000;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  video { width: 100%; display: block; }
+
+  .info {
+    margin-top: 24px;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .info-main { flex: 1; }
+
+  .movie-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .movie-meta {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .cat-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .cat-movie { background: rgba(232,201,122,0.15); color: var(--accent); border: 1px solid rgba(232,201,122,0.3); }
+  .cat-series { background: rgba(100,160,255,0.12); color: #7ab4ff; border: 1px solid rgba(100,160,255,0.25); }
+  .cat-anime { background: rgba(255,130,100,0.12); color: #ff9a7a; border: 1px solid rgba(255,130,100,0.25); }
+
+  .movie-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 600px;
+  }
+
+  .vt-box {
+    margin-top: 28px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+  }
+
+  .vt-box h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .vt-box p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .vt-box code {
+    font-family: monospace;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--text);
+    user-select: all;
+  }
+
+  .error-msg {
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Plyr dark theme tweaks */
+  .plyr--video .plyr__control:hover { background: var(--accent); }
+  .plyr--full-ui input[type=range] { color: var(--accent); }
+  .plyr__progress input[type=range]::-webkit-slider-thumb { background: var(--accent); }
+
+  @media (max-width: 600px) {
+    header { padding: 14px 20px; }
+    .page { padding: 20px 20px 40px; }
+    .movie-title { font-size: 24px; }
+    .info { flex-direction: column; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- VideoTogether sync script — required on every page that has a video -->
+<script src="https://fastly.jsdelivr.net/gh/VideoTogether/VideoTogether@latest/release/extension.website.user.js"></script>
+
+<header>
+  <a class="logo" href="index.html">MYFILMS</a>
+  <a class="back" href="index.html">返回片单</a>
+</header>
+
+<div class="page">
+  <div id="player-wrap" class="player-wrap">
+    <video id="player" playsinline controls></video>
+  </div>
+
+  <div class="info">
+    <div class="info-main">
+      <div class="movie-title" id="title">加载中...</div>
+      <div class="movie-meta">
+        <span id="year"></span>
+        <span class="cat-badge" id="cat-badge"></span>
+      </div>
+      <div class="movie-desc" id="desc"></div>
+    </div>
+  </div>
+
+  <div class="vt-box">
+    <h3>VideoTogether 一起看</h3>
+    <p>
+      和朋友一起看：两个人都安装 VideoTogether 插件，然后把这个页面的链接发给对方。<br>
+      当前页面地址：<code id="current-url"></code>
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plyr@3/dist/plyr.polyfilled.js"></script>
+<script src="movies.js"></script>
+<script>
+  const catLabels = { movie: '电影', series: '剧集', anime: '动漫' };
+  const catClass  = { movie: 'cat-movie', series: 'cat-series', anime: 'cat-anime' };
+
+  function getParam(key) {
+    return new URLSearchParams(window.location.search).get(key);
+  }
+
+  const id = parseInt(getParam('id'));
+  const movie = MOVIES.find(m => m.id === id);
+
+  if (!movie) {
+    document.getElementById('player-wrap').innerHTML =
+      '<div class="error-msg">找不到该影片，请返回片单重试。</div>';
+  } else {
+    document.title = movie.title + ' — MyFilms';
+    document.getElementById('title').textContent = movie.title;
+    document.getElementById('year').textContent = movie.year;
+
+    const badge = document.getElementById('cat-badge');
+    badge.textContent = catLabels[movie.category] || movie.category;
+    badge.className = 'cat-badge ' + (catClass[movie.category] || '');
+
+    document.getElementById('desc').textContent = movie.description;
+    document.getElementById('current-url').textContent = window.location.href;
+
+    const video = document.getElementById('player');
+
+    const player = new Plyr(video, {
+      controls: ['play-large','play','progress','current-time','duration','mute','volume','fullscreen'],
+      ratio: '16:9',
+    });
+
+    if (Hls.isSupported()) {
+      const hls = new Hls({
+        maxBufferLength: 60,
+        maxMaxBufferLength: 120,
+        startLevel: -1,
+        autoStartLoad: true,
+      });
+      hls.loadSource(movie.m3u8);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(() => {});
+      });
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          console.error('HLS fatal error:', data.type, data.details);
+        }
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari native HLS
+      video.src = movie.m3u8;
+    } else {
+      document.getElementById('player-wrap').innerHTML =
+        '<div class="error-msg">你的浏览器不支持 HLS 播放。请使用 Chrome 或 Edge。</div>';
+    }
+  }
+</script>
+</body>
+</html>
